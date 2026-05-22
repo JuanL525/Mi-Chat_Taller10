@@ -1,54 +1,81 @@
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+let NotificationsModule: typeof import('expo-notifications') | null = null;
+
+async function getNotifications(): Promise<typeof import('expo-notifications') | null> {
+  if (!NotificationsModule) {
+    try {
+      const mod = await import('expo-notifications');
+      mod.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+        }),
+      });
+      NotificationsModule = mod;
+    } catch (err) {
+      console.warn('expo-notifications not available:', err);
+      return null;
+    }
+  }
+  return NotificationsModule;
+}
 
 export async function registerForNotificationsAsync() {
-  if (!Device.isDevice) {
-    console.warn('Las notificaciones locales funcionan mejor en un dispositivo físico.');
+  try {
+    if (!Device.isDevice) {
+      console.warn('Notifications: not a physical device, skipping permissions');
+      return null;
+    }
+
+    const Notifications = await getNotifications();
+    if (!Notifications) return null;
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.warn('Notifications permission not granted');
+      return null;
+    }
+
+    return finalStatus;
+  } catch (err) {
+    console.warn('registerForNotificationsAsync error', err);
     return null;
   }
-
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
-
-  if (existingStatus !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
-  }
-
-  if (finalStatus !== 'granted') {
-    console.warn('Permiso de notificaciones denegado.');
-    return null;
-  }
-
-  return finalStatus;
 }
 
 export async function sendMessageNotification(
   senderName: string,
-  roomName: string,
+  roomId: string,
   messagePreview: string,
 ) {
-  const body =
-    messagePreview.length > 60
-      ? `${messagePreview.substring(0, 60)}...`
-      : messagePreview;
+  try {
+    const Notifications = await getNotifications();
+    if (!Notifications) return;
 
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: `💬 ${senderName} en ${roomName}`,
-      body: body || 'Nuevo mensaje',
-      sound: true,
-      badge: 1,
-      data: { roomName },
-    },
-    trigger: null,
-  });
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: `💬 ${senderName}`,
+        body: messagePreview.length > 120 ? messagePreview.slice(0, 120) + '...' : messagePreview,
+        data: { roomId },
+        sound: true,
+        badge: 1,
+      },
+      trigger: null,
+    });
+  } catch (err) {
+    console.warn('sendMessageNotification error', err);
+  }
+}
+
+export async function getExpoNotifications() {
+  return getNotifications();
 }

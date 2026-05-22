@@ -1,30 +1,27 @@
 // app/_layout.tsx
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // 1. Añadimos useRootNavigationState al import
-import { Slot, useRouter, useSegments, useRootNavigationState } from 'expo-router';
-import { useEffect } from 'react';
-import { supabase } from '@shared/infrastructure/supabase/client';
-import { useAuthStore } from '@features/auth/presentation/store/authStore';
 import { SupabaseAuthRepository } from '@features/auth/infrastructure/repositories/SupabaseAuthRepository';
+import { useAuthStore } from '@features/auth/presentation/store/authStore';
+import { supabase } from '@shared/infrastructure/supabase/client';
+import { Slot, useRootNavigationState, useRouter, useSegments } from 'expo-router';
+import { useEffect, useRef } from 'react';
+import { getExpoNotifications, registerForNotificationsAsync } from '../src/services/notificationService';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } }
 });
 const authRepo = new SupabaseAuthRepository();
 
-function AuthGuard() {
+export default function RootLayout() {
   const { user, setUser } = useAuthStore();
   const segments = useSegments();
-  const router   = useRouter();
-  
-  // 2. Obtenemos el estado de la navegación raíz
+  const router = useRouter();
   const rootNavigationState = useRootNavigationState();
 
   useEffect(() => {
-    // Restaurar sesión desde AsyncStorage al iniciar la app
     authRepo.getCurrentUser().then(setUser);
 
-    // Escuchar cambios de sesión: token expirado, logout en otro dispositivo
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session) {
@@ -39,22 +36,37 @@ function AuthGuard() {
   }, []);
 
   useEffect(() => {
-    // 3. ¡LA CLAVE! Si la navegación aún no está lista, detenemos la ejecución.
     if (!rootNavigationState?.key) return;
-
     const inAuth = segments[0] === '(auth)';
-    if (!user && !inAuth) router.replace('/(auth)/login');
-    if (user  && inAuth)  router.replace('/(app)');
-    
-  }, [user, segments, rootNavigationState?.key]); // 4. Agregamos el rootNavigationState?.key a las dependencias
+    const id = setTimeout(() => {
+      if (!user && !inAuth) router.replace('/(auth)/login');
+      if (user && inAuth) router.replace('/(app)');
+    }, 0);
+    return () => clearTimeout(id);
+  }, [user, segments, rootNavigationState?.key]);
 
-  return <Slot />;
-}
+  const notificationSubRef = useRef<{ remove(): void } | null>(null);
 
-export default function RootLayout() {
+  useEffect(() => {
+    registerForNotificationsAsync();
+    getExpoNotifications().then((Notifications) => {
+      if (!Notifications) return;
+      notificationSubRef.current = Notifications.addNotificationResponseReceivedListener((response: any) => {
+        if (!rootNavigationState?.key) return;
+        const roomId = response.notification.request.content.data?.roomId;
+        if (roomId) {
+          router.push(`/chat/${roomId}`);
+        }
+      });
+    });
+    return () => {
+      notificationSubRef.current?.remove();
+    };
+  }, [rootNavigationState?.key]);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGuard />
+      <Slot />
     </QueryClientProvider>
   );
 }

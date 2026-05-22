@@ -6,6 +6,9 @@ import { Message } from "@features/chat/domain/entities/Message";
 import { SupabaseChatRepository } from "@features/chat/infrastructure/repositories/SupabaseChatRepository";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { AppState } from "react-native";
+import { getActiveRoomId } from "../../../../services/activeChatRoom";
+import { sendMessageNotification } from "../../../../services/notificationService";
 
 const chatRepo = new SupabaseChatRepository();
 const sendMessageUseCase = new SendMessageUseCase(chatRepo);
@@ -28,15 +31,32 @@ export function useChat(roomId: string) {
 
   // Paso 2: suscribirse al canal Realtime
   useEffect(() => {
-    const unsubscribe = subscribeUseCase.execute(roomId, (newMsg) => {
+    const unsubscribe = subscribeUseCase.execute(roomId, async (newMsg) => {
       queryClient.setQueryData(["messages", roomId], (old: Message[] = []) => {
         // Evitar duplicados: el optimistic update ya agregó este mensaje
         const exists = old.some((m) => m.id === newMsg.id);
         return exists ? old : [...old, newMsg];
       });
+
+      // Enviar notificación local si el mensaje no lo envió el usuario actual
+      try {
+        if (!user) return;
+        if (newMsg.userId === user.id) return;
+
+        const activeRoomId = getActiveRoomId();
+        const appIsActive = AppState.currentState === 'active';
+
+        // Si el usuario está en la misma sala y la app está activa, no notificar
+        if (activeRoomId === roomId && appIsActive) return;
+
+        await sendMessageNotification(newMsg.authorUsername ?? 'Alguien', roomId, newMsg.content ?? '');
+      } catch (err) {
+        // swallow notification errors
+        console.warn('notification send error', err);
+      }
     });
     return unsubscribe; // Cleanup al desmontar: cierra el WebSocket
-  }, [roomId]);
+  }, [roomId, user]);
 
   // Paso 3: enviar mensaje con optimistic update via useMutation
   const sendMutation = useMutation({

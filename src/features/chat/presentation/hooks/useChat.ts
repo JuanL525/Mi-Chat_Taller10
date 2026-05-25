@@ -17,11 +17,13 @@ export function useChat(roomId: string) {
     }
   }, [roomId]);
 
-  const sendMessage = useCallback(async (roomId: string, content: string) => {
+  const sendMessage = useCallback(async (content: string) => {
+    if (!roomId) return;
     await sendMessageUseCase.execute(roomId, content);
-  }, []);
+  }, [roomId]);
 
-  const subscribeToRoom = useCallback((roomId: string) => {
+  const subscribeToRoom = useCallback(() => {
+    if (!roomId) return () => {};
     loadMessages();
     return subscribeToRoomUseCase.execute(roomId, (newMessage) => {
       setMessages((prev) => {

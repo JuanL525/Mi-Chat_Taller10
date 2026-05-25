@@ -170,7 +170,10 @@ export default function ChatRoom() {
         )}
 
         {/* Input Bar */}
-        <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom + 8, 16) }]}>
+        <View style={[
+          styles.inputBar,
+          { paddingBottom: keyboardActive ? 12 : Math.max(insets.bottom + 8, 16) }
+        ]}>
           <TextInput
             ref={inputRef}
             style={styles.input}

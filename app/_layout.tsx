@@ -6,7 +6,7 @@ import { useAuthStore } from '@features/auth/presentation/store/authStore';
 import { supabase } from '@shared/infrastructure/supabase/client';
 import { Slot, useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { getExpoNotifications, registerForNotificationsAsync } from '../src/services/notificationService';
+import { getExpoNotifications, registerForNotificationsAsync, sendMessageNotification } from '../src/services/notificationService';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } }
@@ -63,6 +63,52 @@ export default function RootLayout() {
       notificationSubRef.current?.remove();
     };
   }, [rootNavigationState?.key]);
+
+  // Suscripción Global en tiempo real para Notificaciones Locales (Supabase Realtime)
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('global-chat-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        async (payload) => {
+          if (!payload.new || payload.new.user_id === user.id) return;
+
+          // Evitar notificar si el usuario ya está viendo activamente este chat
+          const inThisChat = 
+            segments[0] === '(app)' && 
+            segments[1] === 'chat' && 
+            segments[2] === payload.new.room_id;
+            
+          if (inThisChat) return;
+
+          try {
+            // Consultar el perfil del remitente para mostrar su nombre de usuario
+            const { data: senderData } = await supabase
+              .from('profiles')
+              .select('username')
+              .eq('id', payload.new.user_id)
+              .single();
+
+            const senderName = senderData?.username ?? 'Otro Usuario';
+            await sendMessageNotification(senderName, payload.new.room_id, payload.new.content);
+          } catch (err) {
+            console.warn('Error fetching sender profile for notification:', err);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, segments]);
 
   return (
     <QueryClientProvider client={queryClient}>

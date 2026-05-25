@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, FlatList, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar
+  StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, Keyboard
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -33,6 +33,23 @@ export default function ChatRoom() {
   const { messages, isLoading, sendMessage, subscribeToRoom } = useChat(roomId || '');
   const [text, setText] = useState('');
   const listRef = useRef<FlatList>(null);
+  const inputRef = useRef<TextInput>(null);
+  const [keyboardActive, setKeyboardActive] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardActive(true);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardActive(false);
+      inputRef.current?.blur();
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -107,28 +124,31 @@ export default function ChatRoom() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
       <AuraBackground />
-      <View style={{ flex: 1 }}>
-        <StatusBar barStyle="light-content" />
 
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <MaterialCommunityIcons name="chevron-left" size={32} color="#ffffff" />
-          </TouchableOpacity>
-          <View style={styles.headerIcon}>
-            <MaterialCommunityIcons name="tag-outline" size={18} color="#ffffff" />
-          </View>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {name || 'Sala de Soporte'}
-          </Text>
-          <View style={[styles.statusDot, { backgroundColor: '#34d399' }]} />
+      {/* Header (Permanece fijo arriba de la pantalla) */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <MaterialCommunityIcons name="chevron-left" size={32} color="#ffffff" />
+        </TouchableOpacity>
+        <View style={styles.headerIcon}>
+          <MaterialCommunityIcons name="tag-outline" size={18} color="#ffffff" />
         </View>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {name || 'Sala de Soporte'}
+        </Text>
+        <View style={[styles.statusDot, { backgroundColor: '#34d399' }]} />
+      </View>
 
+      {/* Área interactiva con teclado (Evita tapar los inputs usando padding en iOS y height con activación dinámica en Android) */}
+      <KeyboardAvoidingView
+        enabled={Platform.OS === 'ios' ? true : keyboardActive}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={0}
+      >
         {/* Chat Feed */}
         {isLoading ? (
           <ActivityIndicator style={{ flex: 1 }} size="large" color="#6366f1" />
@@ -149,9 +169,10 @@ export default function ChatRoom() {
           />
         )}
 
-        {/* Input */}
+        {/* Input Bar */}
         <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom + 8, 16) }]}>
           <TextInput
+            ref={inputRef}
             style={styles.input}
             value={text}
             onChangeText={setText}
@@ -163,6 +184,8 @@ export default function ChatRoom() {
             placeholderTextColor="#64748b"
             multiline
             maxLength={500}
+            onFocus={() => setKeyboardActive(true)}
+            onBlur={() => setKeyboardActive(false)}
           />
           <TouchableOpacity
             style={[styles.sendBtn, !text.trim() && styles.sendBtnDisabled]}
@@ -172,8 +195,8 @@ export default function ChatRoom() {
             <MaterialCommunityIcons name="send" size={18} color="#ffffff" />
           </TouchableOpacity>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 

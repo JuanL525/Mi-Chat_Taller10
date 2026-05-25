@@ -4,11 +4,6 @@ import Constants from 'expo-constants';
 let NotificationsModule: typeof import('expo-notifications') | null = null;
 
 async function getNotifications(): Promise<typeof import('expo-notifications') | null> {
-  // Evitamos cargar expo-notifications en Expo Go para prevenir errores ruidosos de compatibilidad
-  if (Constants.appOwnership === 'expo') {
-    return null;
-  }
-
   if (!NotificationsModule) {
     try {
       const mod = await import('expo-notifications');
@@ -32,13 +27,12 @@ async function getNotifications(): Promise<typeof import('expo-notifications') |
 
 export async function registerForNotificationsAsync() {
   try {
-    if (!Device.isDevice) {
-      console.warn('Notifications: not a physical device, skipping permissions');
-      return null;
-    }
-
     const Notifications = await getNotifications();
     if (!Notifications) return null;
+
+    if (!Device.isDevice) {
+      console.warn('Notifications: not a physical device, but continuing for local notifications setup');
+    }
 
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;

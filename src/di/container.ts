@@ -12,10 +12,10 @@ import { SubscribeToRoomUseCase } from '@features/chat/application/use-cases/Sub
 import { CreateRoomUseCase }      from '@features/chat/application/use-cases/CreateRoomUseCase';
 
 // ── Repositorios (intercambiables) ───────────────────────────────────────────
-// const authRepository = new SupabaseAuthRepository();
-// const chatRepository = new SupabaseChatRepository();
-export const authRepository = new AppwriteAuthRepository();
-export const chatRepository = new AppwriteChatRepository();
+export const authRepository = new SupabaseAuthRepository();
+export const chatRepository = new SupabaseChatRepository();
+// export const authRepository = new AppwriteAuthRepository();
+// export const chatRepository = new AppwriteChatRepository();
 
 // ── Use cases (no cambian al migrar) ─────────────────────────────────────────
 export const loginUseCase           = new LoginUseCase(authRepository);

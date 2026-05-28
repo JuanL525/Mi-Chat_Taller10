@@ -2,7 +2,7 @@ export interface MessageAuthor {
   id: string;
   username: string;
   avatarUrl: string | null;
-  role: 'seller' | 'client';
+  role: 'refugio' | 'adoptante' | string;
 }
 
 export interface Message {

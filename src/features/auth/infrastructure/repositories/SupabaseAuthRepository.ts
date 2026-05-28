@@ -102,7 +102,7 @@ export class SupabaseAuthRepository implements IAuthRepository {
       if (error) {
         if (authUser) {
           const metadata = authUser.user_metadata || {};
-          const role = isUserRole(metadata.role) ? metadata.role : 'client';
+          const role = isUserRole(metadata.role) ? metadata.role : 'adoptante';
           return {
             id: userId,
             username: metadata.username || email.split('@')[0] || 'Usuario',
@@ -115,7 +115,7 @@ export class SupabaseAuthRepository implements IAuthRepository {
         throw new AppError('PROFILE_FETCH_FAILED', error.message);
       }
 
-      const role = isUserRole(data.role) ? data.role : 'client';
+      const role = isUserRole(data.role) ? data.role : 'adoptante';
 
       return {
         id: data.id,
@@ -128,7 +128,7 @@ export class SupabaseAuthRepository implements IAuthRepository {
     } catch (e: any) {
       if (authUser) {
         const metadata = authUser.user_metadata || {};
-        const role = isUserRole(metadata.role) ? metadata.role : 'client';
+        const role = isUserRole(metadata.role) ? metadata.role : 'adoptante';
         return {
           id: userId,
           username: metadata.username || email.split('@')[0] || 'Usuario',

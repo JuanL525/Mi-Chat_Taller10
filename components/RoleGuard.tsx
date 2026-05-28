@@ -22,8 +22,7 @@ export function RoleGuard({ allowedRole, children }: RoleGuardProps) {
       return;
     }
     if (user.role !== allowedRole) {
-      // Redirigir a su pantalla correcta
-      router.replace(user.role === 'seller' ? '/(app)/seller' : '/(app)/client');
+      router.replace((user.role === 'refugio' ? '/(app)/refugio' : '/(app)/adoptante') as any);
     }
   }, [user, allowedRole, router]);
 

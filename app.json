@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mi-chat-app",
+    "name": "PetAdopt",
     "slug": "mi-chat-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -43,8 +43,15 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "La aplicación requiere acceso a tu galería de fotos para que puedas seleccionar imágenes de tus productos.",
-          "savePhotosPermission": "La aplicación requiere permiso para guardar fotos en tu galería."
+          "photosPermission": "PetAdopt necesita acceso a tu galería para subir fotos de mascotas.",
+          "savePhotosPermission": "PetAdopt necesita permiso para guardar fotos."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "PetAdopt necesita tu ubicación para mostrarte los refugios cercanos.",
+          "locationWhenInUsePermission": "PetAdopt necesita tu ubicación para mostrarte los refugios cercanos."
         }
       ]
     ],

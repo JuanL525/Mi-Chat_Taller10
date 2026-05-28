@@ -3,7 +3,7 @@ import { RoleGuard } from '../../../components/RoleGuard';
 
 export default function ClientLayout() {
   return (
-    <RoleGuard allowedRole="client">
+    <RoleGuard allowedRole="adoptante">
       <Slot />
     </RoleGuard>
   );

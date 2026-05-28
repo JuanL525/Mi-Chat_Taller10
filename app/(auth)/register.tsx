@@ -289,7 +289,7 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [role, setRole] = useState<'client' | 'seller'>('client');
+  const [role, setRole] = useState<'adoptante' | 'refugio'>('adoptante');
   const [focus, setFocus] = useState<"user" | "email" | "password" | null>(null);
   const { register, isLoading, error } = useAuth();
 
@@ -419,31 +419,31 @@ export default function RegisterScreen() {
             <TouchableOpacity
               style={[
                 styles.roleOption,
-                role === 'client' && styles.roleOptionActiveClient
+                role === 'adoptante' && styles.roleOptionActiveClient
               ]}
-              onPress={() => setRole('client')}
+              onPress={() => setRole('adoptante')}
               activeOpacity={0.8}
             >
               <Text style={[
                 styles.roleOptionText,
-                role === 'client' && styles.roleOptionTextActiveClient
+                role === 'adoptante' && styles.roleOptionTextActiveClient
               ]}>
-                👤 Cliente
+                🐾 Adoptante
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.roleOption,
-                role === 'seller' && styles.roleOptionActiveSeller
+                role === 'refugio' && styles.roleOptionActiveSeller
               ]}
-              onPress={() => setRole('seller')}
+              onPress={() => setRole('refugio')}
               activeOpacity={0.8}
             >
               <Text style={[
                 styles.roleOptionText,
-                role === 'seller' && styles.roleOptionTextActiveSeller
+                role === 'refugio' && styles.roleOptionTextActiveSeller
               ]}>
-                🏷 Vendedor
+                🏠 Refugio
               </Text>
             </TouchableOpacity>
           </View>

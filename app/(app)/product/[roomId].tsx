@@ -28,7 +28,7 @@ export default function ProductDetailScreen() {
   const { roomId, name } = useLocalSearchParams<{ roomId: string; name?: string }>();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const isSeller = user?.role === 'seller';
+  const isSeller = user?.role === 'refugio';
   const insets = useSafeAreaInsets();
   
   const [imageUri, setImageUri] = useState<string | null>(null);

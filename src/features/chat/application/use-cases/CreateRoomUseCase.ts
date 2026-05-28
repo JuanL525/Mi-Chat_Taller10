@@ -7,9 +7,8 @@ export class CreateRoomUseCase {
   constructor(private readonly chatRepository: IChatRepository) {}
 
   async execute(dto: CreateRoomDTO, currentUser: User): Promise<Room> {
-    // Regla de negocio: solo sellers pueden crear salas
     if (!canCreateRoom(currentUser)) {
-      throw new AppError('FORBIDDEN', 'Solo los vendedores pueden crear salas');
+      throw new AppError('FORBIDDEN', 'Solo los refugios pueden crear salas de chat');
     }
     if (!dto.name.trim()) {
       throw new AppError('VALIDATION_ERROR', 'El nombre de la sala es obligatorio');

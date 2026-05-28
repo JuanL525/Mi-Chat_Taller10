@@ -78,6 +78,30 @@ export async function sendMessageNotification(
   }
 }
 
+export async function sendAdoptionNotification(
+  title: string,
+  body: string,
+  requestId: string,
+) {
+  try {
+    const Notifications = await getNotifications();
+    if (!Notifications) return;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        data: { requestId },
+        sound: true,
+        badge: 1,
+      },
+      trigger: null,
+    });
+  } catch (err) {
+    console.warn('sendAdoptionNotification error', err);
+  }
+}
+
 export async function getExpoNotifications() {
   return getNotifications();
 }

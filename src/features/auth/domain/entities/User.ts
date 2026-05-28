@@ -1,4 +1,4 @@
-export type UserRole = 'seller' | 'client';
+export type UserRole = 'refugio' | 'adoptante';
 
 export interface User {
   id: string;
@@ -22,11 +22,11 @@ export interface LoginDTO {
 }
 
 export function isUserRole(value: unknown): value is UserRole {
-  return value === 'seller' || value === 'client';
+  return value === 'refugio' || value === 'adoptante';
 }
 
 export function canCreateRoom(user: User): boolean {
-  return user.role === 'seller';
+  return user.role === 'refugio';
 }
 
 export function getUserInitials(user: Pick<User, 'username'>): string {

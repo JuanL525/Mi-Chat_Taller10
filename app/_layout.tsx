@@ -17,6 +17,7 @@ import {
   getExpoNotifications,
   registerForNotificationsAsync,
   sendMessageNotification,
+  sendAdoptionNotification,
 } from "../src/services/notificationService";
 
 // Polyfill de localStorage para prevenir error interno en react-native-appwrite Realtime
@@ -110,9 +111,9 @@ export default function RootLayout() {
               {
                 id: session.user.id,
                 username,
-                role: "client", // rol por defecto
+                role: "adoptante",
               },
-              { onConflict: "id" }
+              { onConflict: "id", ignoreDuplicates: true }
             );
             console.log("[_layout] Profile upsert finished successfully.");
           } catch (profileErr: any) {
@@ -145,7 +146,7 @@ export default function RootLayout() {
           const fallbackUser = {
             id: session?.user?.id || "",
             username,
-            role: "client",
+            role: "adoptante",
             avatarUrl: metadata.avatarUrl || null,
             createdAt: session?.user?.created_at || new Date().toISOString(),
             email,
@@ -249,9 +250,11 @@ export default function RootLayout() {
         Notifications.addNotificationResponseReceivedListener(
           (response: any) => {
             if (!rootNavigationState?.key) return;
-            const roomId = response.notification.request.content.data?.roomId;
-            if (roomId) {
-              router.push(`/chat/${roomId}`);
+            const data = response.notification.request.content.data;
+            if (data?.roomId) {
+              router.push(`/chat/${data.roomId}`);
+            } else if (data?.requestId) {
+              router.push(`/adoptions/${data.requestId}` as any);
             }
           }
         );
@@ -347,6 +350,67 @@ export default function RootLayout() {
       };
     }
   }, [user, segments]);
+
+  // Suscripción Global para Notificaciones de Solicitudes de Adopción
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`adoption-notifications-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'adoption_requests', filter: `shelter_id=eq.${user.id}` },
+        async (payload) => {
+          // Notificar al refugio cuando recibe una nueva solicitud
+          if (user.role !== 'refugio') return;
+          try {
+            const { data: adopterData } = await supabase
+              .from('profiles')
+              .select('username')
+              .eq('id', payload.new.adopter_id)
+              .single();
+            const { data: petData } = await supabase
+              .from('pets')
+              .select('name')
+              .eq('id', payload.new.pet_id)
+              .single();
+            await sendAdoptionNotification(
+              `Nueva solicitud de adopción`,
+              `${adopterData?.username ?? 'Un adoptante'} quiere adoptar a ${petData?.name ?? 'tu mascota'}`,
+              payload.new.id
+            );
+          } catch (err) {
+            console.warn('Error sending adoption notification:', err);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'adoption_requests', filter: `adopter_id=eq.${user.id}` },
+        async (payload) => {
+          // Notificar al adoptante cuando cambia el estado de su solicitud
+          if (user.role !== 'adoptante') return;
+          if (payload.new.status === 'approved' || payload.new.status === 'rejected') {
+            const statusMsg = payload.new.status === 'approved' ? '¡Aprobada! 🎉 El refugio aceptó tu solicitud' : 'Rechazada. El refugio no pudo aprobar tu solicitud';
+            try {
+              const { data: petData } = await supabase.from('pets').select('name').eq('id', payload.new.pet_id).single();
+              await sendAdoptionNotification(
+                `Solicitud ${payload.new.status === 'approved' ? 'aprobada' : 'rechazada'}`,
+                `${petData?.name ?? 'Mascota'}: ${statusMsg}`,
+                payload.new.id
+              );
+            } catch (err) {
+              console.warn('Error sending status notification:', err);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   return (
     <QueryClientProvider client={queryClient}>

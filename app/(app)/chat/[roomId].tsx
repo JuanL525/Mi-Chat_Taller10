@@ -73,7 +73,7 @@ export default function ChatRoom() {
     const author = item.author;
     const isOwn = author?.id === user?.id;
     const authorInitials = author?.username ? getUserInitials({ username: author.username }) : '?';
-    const isSeller = author?.role === 'seller';
+    const isSeller = author?.role === 'refugio';
     const authorName = author?.username || 'Usuario';
 
     return (
@@ -101,7 +101,7 @@ export default function ChatRoom() {
                   styles.miniRoleText,
                   isSeller ? styles.sellerBadgeText : styles.clientBadgeText
                 ]}>
-                  {isSeller ? 'Vendedor' : 'Cliente'}
+                  {isSeller ? 'Refugio' : 'Adoptante'}
                 </Text>
               </View>
             </View>
@@ -180,9 +180,9 @@ export default function ChatRoom() {
             value={text}
             onChangeText={setText}
             placeholder={
-              user?.role === 'client'
-                ? 'Escribe tu pregunta sobre el producto...'
-                : 'Responde al cliente...'
+              user?.role === 'adoptante'
+                ? 'Escribe tu mensaje al refugio...'
+                : 'Responde al adoptante...'
             }
             placeholderTextColor="#64748b"
             multiline

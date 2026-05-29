@@ -35,7 +35,7 @@ function showMessage(text, isError) {
 function showExpiredLinkHelp(context) {
   document.getElementById('subtitle').textContent = 'Enlace inválido o expirado';
   document.getElementById('form-container').innerHTML = `
-    <p style="font-size:48px;margin:16px 0">⏱️</p>
+    <div class="state-icon warn-ring">⏱️</div>
     <p class="hint">
       • Solicita un <strong>nuevo</strong> correo desde la app.<br>
       • Abre solo el correo <strong>más reciente</strong>.<br>

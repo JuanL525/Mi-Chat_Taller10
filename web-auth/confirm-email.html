@@ -8,13 +8,19 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class="card">
-    <div class="logo">🐾</div>
+  <header class="hero">
+    <div class="hero-badge">🐾</div>
     <h1>PetAdopt</h1>
+    <span class="hero-tag">Confirmar cuenta</span>
+  </header>
+
+  <main class="card">
     <p class="subtitle" id="subtitle">Confirmando tu cuenta...</p>
     <div id="form-container"></div>
     <div class="message" id="message"></div>
-  </div>
+    <p class="footer-note">Plataforma de adopción de mascotas</p>
+  </main>
+
   <script src="/auth.js"></script>
   <script>
     const sb = createSupabaseClient();
@@ -34,7 +40,7 @@
       }
 
       document.getElementById('subtitle').textContent = '¡Cuenta confirmada!';
-      document.getElementById('form-container').innerHTML = '<p style="font-size:48px;margin:20px 0">✅</p>';
+      document.getElementById('form-container').innerHTML = '<div class="state-icon success-ring">✅</div>';
       showMessage('Tu cuenta fue confirmada. Ya puedes abrir la app PetAdopt.', false);
       setTimeout(() => { window.location.href = 'michatapp://'; }, 2000);
     }

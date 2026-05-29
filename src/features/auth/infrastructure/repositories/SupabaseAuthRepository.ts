@@ -1,4 +1,4 @@
-import { supabase, HybridStorageAdapter } from '@shared/infrastructure/supabase/client';
+import { supabase, supabaseEmailAuth, HybridStorageAdapter } from '@shared/infrastructure/supabase/client';
 import { IAuthRepository } from '../../domain/repositories/IAuthRepository';
 import { User, CreateUserDTO, LoginDTO, isUserRole } from '../../domain/entities/User';
 import { AppError } from '@shared/domain/errors/AppError';
@@ -33,7 +33,7 @@ export class SupabaseAuthRepository implements IAuthRepository {
   }
 
   async register(dto: CreateUserDTO): Promise<User> {
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await supabaseEmailAuth.auth.signUp({
       email: dto.email,
       password: dto.password,
       options: {
@@ -148,7 +148,7 @@ export class SupabaseAuthRepository implements IAuthRepository {
   }
 
   async forgotPassword(email: string): Promise<void> {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabaseEmailAuth.auth.resetPasswordForEmail(email, {
       redirectTo: this.webAuthUrl('/reset-password'),
     });
     if (error) throw new AppError('AUTH_RESET_FAILED', error.message);

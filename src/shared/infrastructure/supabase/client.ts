@@ -214,3 +214,17 @@ export const supabase = createClient(
     },
   }
 );
+
+/** Cliente sin PKCE — solo para emails cuyo enlace se abre en el navegador (web-auth). */
+export const supabaseEmailAuth = createClient(
+  process.env.EXPO_PUBLIC_SUPABASE_URL!,
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      flowType: 'implicit',
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  }
+);

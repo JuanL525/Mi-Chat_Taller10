@@ -1,0 +1,17 @@
+<!--
+  PLANTILLA — pegar en Supabase Dashboard:
+  Authentication → Email Templates → Confirm signup
+
+  Subject: Confirma tu cuenta · PetAdopt
+-->
+<h2 style="font-family:sans-serif;color:#111;">Confirma tu cuenta</h2>
+<p style="font-family:sans-serif;color:#444;font-size:15px;line-height:1.5;">
+  ¡Bienvenido a <strong>PetAdopt</strong>! Confirma tu correo para empezar.
+</p>
+<p style="margin:28px 0;">
+  <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email"
+     style="background:#FF5533;color:#fff;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:700;font-family:sans-serif;display:inline-block;">
+    Confirmar cuenta
+  </a>
+</p>
+<p style="font-family:sans-serif;color:#888;font-size:12px;">— Equipo PetAdopt</p>

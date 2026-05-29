@@ -27,11 +27,17 @@ export class SupabaseAuthRepository implements IAuthRepository {
     return this.fetchProfile(data.user.id, data.user.email ?? '', data.user);
   }
 
+  private webAuthUrl(path = '') {
+    const base = (process.env.EXPO_PUBLIC_WEB_AUTH_URL ?? 'https://petadopt-am.vercel.app').replace(/\/$/, '');
+    return path ? `${base}${path}` : base;
+  }
+
   async register(dto: CreateUserDTO): Promise<User> {
     const { data, error } = await supabase.auth.signUp({
       email: dto.email,
       password: dto.password,
       options: {
+        emailRedirectTo: this.webAuthUrl('/confirm-email'),
         data: {
           username: dto.username,
           role: dto.role,
@@ -142,9 +148,8 @@ export class SupabaseAuthRepository implements IAuthRepository {
   }
 
   async forgotPassword(email: string): Promise<void> {
-    const base = (process.env.EXPO_PUBLIC_WEB_AUTH_URL ?? 'https://petadopt-am.vercel.app').replace(/\/$/, '');
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${base}?type=recovery`,
+      redirectTo: this.webAuthUrl('/reset-password'),
     });
     if (error) throw new AppError('AUTH_RESET_FAILED', error.message);
   }

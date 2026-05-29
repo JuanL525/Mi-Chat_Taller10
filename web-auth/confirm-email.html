@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetAdopt – Confirmar cuenta</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🐾</div>
+    <h1>PetAdopt</h1>
+    <p class="subtitle" id="subtitle">Confirmando tu cuenta...</p>
+    <div id="form-container"></div>
+    <div class="message" id="message"></div>
+  </div>
+  <script src="/auth.js"></script>
+  <script>
+    const sb = createSupabaseClient();
+
+    async function boot() {
+      const p = parseAuthParams();
+      if (p.errorCode) {
+        showExpiredLinkHelp('confirmación');
+        return;
+      }
+
+      const result = await establishSession(sb, 'email');
+      if (!result.ok) {
+        document.getElementById('subtitle').textContent = 'Error al confirmar';
+        showMessage('No se pudo confirmar la cuenta: ' + result.error, true);
+        return;
+      }
+
+      document.getElementById('subtitle').textContent = '¡Cuenta confirmada!';
+      document.getElementById('form-container').innerHTML = '<p style="font-size:48px;margin:20px 0">✅</p>';
+      showMessage('Tu cuenta fue confirmada. Ya puedes abrir la app PetAdopt.', false);
+      setTimeout(() => { window.location.href = 'michatapp://'; }, 2000);
+    }
+
+    boot();
+  </script>
+</body>
+</html>

@@ -15,7 +15,10 @@ Sitio web auxiliar para confirmación de cuenta y reseteo de contraseña.
 3. **Redirect URLs** — agrega **todas** estas líneas:
    - `https://tu-url.vercel.app`
    - `https://tu-url.vercel.app/**`
-   - `https://tu-url.vercel.app/?type=recovery`
+   - `https://tu-url.vercel.app/reset-password`
+   - `https://tu-url.vercel.app/reset-password/**`
+   - `https://tu-url.vercel.app/confirm-email`
+   - `https://tu-url.vercel.app/confirm-email/**`
    - `michatapp://**`
 4. **Authentication → Email Templates → Reset Password** — el enlace debe usar `{{ .ConfirmationURL }}`
 5. (Opcional) **Authentication → Providers → Email** — sube "Mailer OTP Expiration" a `86400` (24 h) para pruebas

@@ -1,0 +1,62 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #090d16;
+  color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.card {
+  background: rgba(22, 32, 51, 0.9);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.logo { font-size: 40px; margin-bottom: 16px; }
+h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 32px; line-height: 1.5; }
+input {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 15px;
+  margin-bottom: 16px;
+  outline: none;
+}
+input:focus { border-color: #34d399; }
+button {
+  width: 100%;
+  padding: 15px;
+  background: #34d399;
+  color: #0f172a;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+button:hover { background: #10b981; }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+.message {
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  display: none;
+  line-height: 1.5;
+  text-align: left;
+}
+.message.success { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3); color: #34d399; }
+.message.error { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); color: #f87171; }
+.hint { color: #94a3b8; font-size: 13px; line-height: 1.6; margin-top: 12px; text-align: left; }

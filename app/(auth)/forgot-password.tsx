@@ -1,7 +1,16 @@
 import { useAuth } from "@features/auth/presentation/hooks/useAuth";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MotiView, AnimatePresence } from "moti";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -14,11 +23,34 @@ import {
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
   const { forgotPassword, isLoading, error } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const c = useColors();
   const isDark = useThemeStore((s) => s.isDark);
+  const { height: screenH } = useWindowDimensions();
+  const isCompact = screenH < 700;
+  const scrollPaddingTop = isCompact ? insets.top + space[3] : insets.top + space[5];
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardInset(e.endCoordinates.height);
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      });
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardInset(0));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleSend = async () => {
     if (!email.trim()) return;
@@ -31,19 +63,24 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: c.bgPage }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: c.bgPage }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? insets.top : 0}
+    >
       <StatusBar style={isDark ? "light" : "dark"} />
 
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={{
           flexGrow: 1,
           paddingHorizontal: space[5],
-          paddingTop: insets.top + space[6],
-          paddingBottom: insets.bottom + space[8],
-          justifyContent: "center",
+          paddingTop: scrollPaddingTop,
+          paddingBottom: insets.bottom + space[8] + keyboardInset,
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         <AnimatePresence exitBeforeEnter>
           {!sent ? (
@@ -61,7 +98,7 @@ export default function ForgotPasswordScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: space[1],
-                  marginBottom: space[8],
+                  marginBottom: isCompact ? space[5] : space[6],
                   alignSelf: "flex-start",
                 }}
               >
@@ -87,19 +124,19 @@ export default function ForgotPasswordScreen() {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", damping: 14, stiffness: 200, delay: 100 }}
                 style={{
-                  width: 72,
-                  height: 72,
+                  width: isCompact ? 60 : 72,
+                  height: isCompact ? 60 : 72,
                   borderRadius: radius.xl,
                   backgroundColor: c.primaryLight,
                   alignItems: "center",
                   justifyContent: "center",
-                  marginBottom: space[5],
+                  marginBottom: isCompact ? space[4] : space[5],
                   ...shadow.md,
                 }}
               >
                 <MaterialCommunityIcons
                   name="lock-reset"
-                  size={34}
+                  size={isCompact ? 28 : 34}
                   color={c.primary}
                 />
               </MotiView>
@@ -107,7 +144,10 @@ export default function ForgotPasswordScreen() {
               <PetText variant="h2" style={{ marginBottom: space[2] }}>
                 Recuperar contraseña
               </PetText>
-              <PetText variant="body" style={{ marginBottom: space[7] }}>
+              <PetText
+                variant="body"
+                style={{ marginBottom: isCompact ? space[5] : space[6] }}
+              >
                 Ingresa tu correo y te enviaremos un enlace para restablecer tu
                 contraseña. El enlace expira en 1 hora.
               </PetText>
@@ -158,7 +198,8 @@ export default function ForgotPasswordScreen() {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 placeholder="hola@ejemplo.com"
-                autoFocus
+                returnKeyType="send"
+                onSubmitEditing={handleSend}
                 leftIcon={
                   <MaterialCommunityIcons
                     name="email-outline"
@@ -275,6 +316,6 @@ export default function ForgotPasswordScreen() {
           )}
         </AnimatePresence>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
